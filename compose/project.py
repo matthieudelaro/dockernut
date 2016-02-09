@@ -25,6 +25,7 @@ from .service import ContainerNetworkMode
 from .service import ConvergenceStrategy
 from .service import NetworkMode
 from .service import Service
+from .service import Env
 from .service import ServiceNetworkMode
 from .utils import microseconds_from_time_nano
 from .volume import ProjectVolumes
@@ -71,6 +72,9 @@ class Project(object):
             else:
                 service_networks = []
 
+            # print("AAA fromConfig:", service_dict)
+            # print("AAA fromConfig:", service_dict["env"]["name"])
+
             service_dict.pop('networks', None)
             links = project.get_links(service_dict)
             network_mode = project.get_network_mode(service_dict, service_networks)
@@ -83,17 +87,22 @@ class Project(object):
                 ]
 
             project.services.append(
-                Service(
-                    service_dict.pop('name'),
-                    client=client,
-                    project=name,
-                    use_networking=use_networking,
-                    networks=service_networks,
-                    links=links,
-                    network_mode=network_mode,
-                    volumes_from=volumes_from,
+                Env(
+                    more=service_dict,
                     **service_dict)
             )
+            # project.services.append(
+            #     Service(
+            #         service_dict.pop('name'),
+            #         client=client,
+            #         project=name,
+            #         use_networking=use_networking,
+            #         networks=service_networks,
+            #         links=links,
+            #         network_mode=network_mode,
+            #         volumes_from=volumes_from,
+            #         **service_dict)
+            # )
 
         return project
 

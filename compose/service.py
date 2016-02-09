@@ -7,6 +7,8 @@ import sys
 from collections import namedtuple
 from operator import attrgetter
 
+from subprocess import call
+
 import enum
 import six
 from docker.errors import APIError
@@ -101,6 +103,25 @@ class ImageType(enum.Enum):
     none = 0
     local = 1
     all = 2
+
+
+class Env(object):
+    def __init__(
+        self,
+        more,
+        **options
+    ):
+        self.name = more["name"]
+        self.more = more
+        self.options = options
+
+    def pull(self):
+        print("pulling")
+
+    def run(self, args):
+        if self.more["env"]["image"]:
+            imageName = self.more["env"]["image"]
+            call(["docker", "run", "--rm", "-v", "/Users/matthieudelaro/Documents/projects/docker/investigations/compose/tests/nut:/theapp", "-w", "/theapp", imageName, *args])
 
 
 class Service(object):

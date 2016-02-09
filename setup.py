@@ -54,7 +54,7 @@ if sys.version_info[:2] < (3, 4):
 setup(
     name='nut',
     version=find_version("compose", "__init__.py"),
-    description='Multi-container orchestration for Docker',
+    description='Dev environment manager based on Docker',
     url='https://www.docker.com/',
     author='Docker, Inc.',
     license='Apache License 2.0',
