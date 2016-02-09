@@ -52,7 +52,7 @@ if sys.version_info[:2] < (3, 4):
 
 
 setup(
-    name='docker-compose',
+    name='nut',
     version=find_version("compose", "__init__.py"),
     description='Multi-container orchestration for Docker',
     url='https://www.docker.com/',
@@ -65,7 +65,7 @@ setup(
     tests_require=tests_require,
     entry_points="""
     [console_scripts]
-    docker-compose=compose.cli.main:main
+    nut=compose.cli.main:main
     """,
     classifiers=[
         'Development Status :: 5 - Production/Stable',

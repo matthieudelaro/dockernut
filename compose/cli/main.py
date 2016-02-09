@@ -115,7 +115,7 @@ def parse_doc_section(name, source):
 
 
 class TopLevelCommand(DocoptCommand):
-    """Define and run multi-container applications with Docker.
+    """Define and use a dev environment with Docker.
 
     Usage:
       docker-compose [-f=<arg>...] [options] [COMMAND] [ARGS...]
