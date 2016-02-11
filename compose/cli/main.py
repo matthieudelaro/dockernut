@@ -174,11 +174,12 @@ class TopLevelCommand(DocoptCommand):
             --no-cache  Do not use cache when building the image.
             --pull      Always attempt to pull a newer version of the image.
         """
-        project.build(
-            service_names=options['SERVICE'],
-            no_cache=bool(options.get('--no-cache', False)),
-            pull=bool(options.get('--pull', False)),
-            force_rm=bool(options.get('--force-rm', False)))
+        # project.build(
+        #     service_names=options['SERVICE'],
+        #     no_cache=bool(options.get('--no-cache', False)),
+        #     pull=bool(options.get('--pull', False)),
+        #     force_rm=bool(options.get('--force-rm', False)))
+        project.get_service(project.service_names[0]).build()
 
     def cmd(self, project, options):
         """
@@ -192,10 +193,10 @@ class TopLevelCommand(DocoptCommand):
             --pull      Always attempt to pull a newer version of the image.
         """
         # print("hello")
-        # print(project.service_names)
-        # print(project.get_service(project.service_names[0]))
+        # print("environments:", project.service_names)
+        print("environment:", project.get_service(project.service_names[0]).name)
         # print(options)
-        # project.get_service(project.service_names[0]).run(options["ARGS"])
+        project.get_service(project.service_names[0]).run(options["ARGS"])
         # project.get_service(project.service_names[0]).run(["echo", "hello"])
         # project.get_service(project.service_names[0]).pull()
         # print(project.get_service(project.service_names[0]).image)

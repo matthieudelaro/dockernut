@@ -8,6 +8,7 @@ from collections import namedtuple
 from operator import attrgetter
 
 from subprocess import call
+import shlex
 
 import enum
 import six
@@ -122,6 +123,26 @@ class Env(object):
         if self.more["env"]["image"]:
             imageName = self.more["env"]["image"]
             call(["docker", "run", "--rm", "-v", "/Users/matthieudelaro/Documents/projects/docker/investigations/compose/tests/nut:/theapp", "-w", "/theapp", imageName, *args])
+
+    def build(self):
+        try:
+            command = self.more["commands"]["build"]
+        except KeyError:
+            print("No build target")
+        else:
+            print(command)
+            commands = None
+            if isinstance(command, str):
+                commands = [command]
+            elif isinstance(command, list):
+                commands = command
+
+            # TODO: keep container alive between the calls
+            for c in commands:
+                theArgs = shlex.split(c)  # parse the string the same way the command line would
+                self.run(theArgs)
+
+
 
 
 class Service(object):

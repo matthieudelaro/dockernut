@@ -21,6 +21,10 @@
             "image": {"type": "string"}
           },
           "additionalProperties": false
+        },
+        "commands": {
+          "type": "object",
+          "additionalProperties": true
         }
       },
 

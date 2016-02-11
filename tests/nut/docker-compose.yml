@@ -1,4 +1,8 @@
 
-nut:
+go:
   env:
-    image: gpp
+    image: golang:1.3
+  commands:
+    build:
+      - echo "Hello World"
+      - ls -la
