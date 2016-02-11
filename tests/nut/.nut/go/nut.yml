@@ -1,0 +1,11 @@
+
+go:
+  env:
+    image: golang:1.3
+  commands:
+    build:
+      - go build -v
+    run:
+      - echo "Nothing to run yet"
+    test:
+      - echo "Nothing to test yet"

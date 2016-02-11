@@ -31,6 +31,7 @@ from ..service import NeedsBuildError
 from .command import friendly_error_message
 from .command import get_config_path_from_options
 from .command import project_from_options
+from .command import get_project
 from .docopt_command import DocoptCommand
 from .docopt_command import NoSuchCommand
 from .errors import UserError
@@ -39,6 +40,8 @@ from .formatter import Formatter
 from .log_printer import LogPrinter
 from .utils import get_version_info
 from .utils import yesno
+
+import os
 
 
 if not IS_WINDOWS_PLATFORM:
@@ -158,6 +161,13 @@ class TopLevelCommand(DocoptCommand):
             return
 
         project = project_from_options(self.base_dir, options)
+
+        # load a custom yml script
+        donut = get_project(os.path.join(self.base_dir, ".nut", "go"), config_path=["nut.yml"], project_name=None, verbose=True)
+        print()
+        print("donut", donut)
+        print("the config loaded from the file: ", self.getEnv(donut).more)  # here is the config
+
         with friendly_error_message():
             handler(project, command_options)
 
