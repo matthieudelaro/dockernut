@@ -117,28 +117,13 @@ class Env(object):
         self.more = more
         self.options = options
 
-    def pull(self):
-        """Pull image from docker hub"""
-        print("pulling")
-
-    def exe(self, args):
-        """Run the program"""
-        if self.more["env"]["image"]:
-            imageName = self.more["env"]["image"]
-            call(["docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName, *args])
-
-    def run(self):
-        """Run the program"""
-        pass
-
     def build(self):
-        """Build the program"""
+        """Builds the program"""
         try:
             command = self.more["commands"]["build"]
         except KeyError:
             print("No build target")
         else:
-            print(command)
             commands = None
             if isinstance(command, str):
                 commands = [command]
@@ -150,7 +135,33 @@ class Env(object):
                 theArgs = shlex.split(c)  # parse the string the same way the command line would
                 self.exe(theArgs)
 
+    def exe(self, args):
+        """Runs the command"""
+        if self.more["env"]["image"]:
+            imageName = self.more["env"]["image"]
+            call(["docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName, *args])
 
+    def run(self):
+        """Runs the program"""
+        pass
+
+    def cmd(self, name):
+        """Runs the command 'name' defined in project configuration file."""
+        try:
+            command = self.more["commands"][name]
+        except KeyError:
+            print("The command '" + name + "' is not defined in the configuration. Check yml file.")
+        else:
+            commands = None
+            if isinstance(command, str):
+                commands = [command]
+            elif isinstance(command, list):
+                commands = command
+
+            # TODO: keep container alive between the calls
+            for c in commands:
+                theArgs = shlex.split(c)  # parse the string the same way the command line would
+                self.exe(theArgs)
 
 
 class Service(object):

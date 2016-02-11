@@ -3,6 +3,9 @@ go:
   env:
     image: golang:1.3
   commands:
+    helloworld:
+      - echo "Hello World!"
     build:
-      - echo "Hello World"
-      - ls -la
+      - go build -v
+    run :
+      - go

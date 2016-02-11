@@ -129,14 +129,16 @@ class TopLevelCommand(DocoptCommand):
 
     Commands:
       build              Build or rebuild app
-      cmd                An attempt to change stuff
+      cmd                Run a command defined in configuration file
+      exe                Run a command given as argument
       help               Get help on a command
-      run                Run a one-off command
-      start              Start services
-      stop               Stop services
+      run                Run the app
       version            Show the nut version information
     """
     base_dir = '.'
+
+    def getEnv(self, project):
+        return project.get_service(project.service_names[0])
 
     def docopt_options(self):
         options = super(TopLevelCommand, self).docopt_options()
@@ -163,43 +165,39 @@ class TopLevelCommand(DocoptCommand):
         """
         Build or rebuild services.
 
-        Services are built once and then tagged as `project_service`,
-        e.g. `composetest_db`. If you change a service's `Dockerfile` or the
-        contents of its build directory, you can run `docker-compose build` to rebuild it.
-
-        Usage: build [options] [SERVICE...]
-
-        Options:
-            --force-rm  Always remove intermediate containers.
-            --no-cache  Do not use cache when building the image.
-            --pull      Always attempt to pull a newer version of the image.
+        Usage: build
         """
         # project.build(
         #     service_names=options['SERVICE'],
         #     no_cache=bool(options.get('--no-cache', False)),
         #     pull=bool(options.get('--pull', False)),
         #     force_rm=bool(options.get('--force-rm', False)))
-        project.get_service(project.service_names[0]).build()
+        self.getEnv(project).build()
 
     def cmd(self, project, options):
         """
-        Run command in the container.
+        Run command defined in the project configuration.
 
-        Usage: cmd [command] [ARGS...]
-
-        Options:
-            --force-rm  Always remove intermediate containers.
-            --no-cache  Do not use cache when building the image.
-            --pull      Always attempt to pull a newer version of the image.
+        Usage: cmd [ARGS]
         """
+        #  cmd [command] [ARGS...]
         # print("hello")
         # print("environments:", project.service_names)
-        print("environment:", project.get_service(project.service_names[0]).name)
+        # print("environment:", project.get_service(project.service_names[0]).name)
         # print(options)
-        project.get_service(project.service_names[0]).run(options["ARGS"])
+        # project.get_service(project.service_names[0]).run(options["ARGS"])
+        self.getEnv(project).cmd(options["ARGS"])
         # project.get_service(project.service_names[0]).run(["echo", "hello"])
         # project.get_service(project.service_names[0]).pull()
         # print(project.get_service(project.service_names[0]).image)
+
+    def exe(self, project, options):
+        """
+        Run command given as argument.
+
+        Usage: exe [ARGS...]
+        """
+        self.getEnv(project).exe(options["ARGS"])
 
     # def config(self, config_options, options):
     #     """
@@ -434,84 +432,84 @@ class TopLevelCommand(DocoptCommand):
     #     else:
     #         print("No stopped containers")
 
-    def run(self, project, options):
-        """
-        Run a one-off command on a service.
+    # def run(self, project, options):
+    #     """
+    #     Run a one-off command on a service.
 
-        For example:
+    #     For example:
 
-            $ docker-compose run web python manage.py shell
+    #         $ docker-compose run web python manage.py shell
 
-        By default, linked services will be started, unless they are already
-        running. If you do not want to start linked services, use
-        `docker-compose run --no-deps SERVICE COMMAND [ARGS...]`.
+    #     By default, linked services will be started, unless they are already
+    #     running. If you do not want to start linked services, use
+    #     `docker-compose run --no-deps SERVICE COMMAND [ARGS...]`.
 
-        Usage: run [options] [-p PORT...] [-e KEY=VAL...] SERVICE [COMMAND] [ARGS...]
+    #     Usage: run [options] [-p PORT...] [-e KEY=VAL...] SERVICE [COMMAND] [ARGS...]
 
-        Options:
-            -d                    Detached mode: Run container in the background, print
-                                  new container name.
-            --name NAME           Assign a name to the container
-            --entrypoint CMD      Override the entrypoint of the image.
-            -e KEY=VAL            Set an environment variable (can be used multiple times)
-            -u, --user=""         Run as specified username or uid
-            --no-deps             Don't start linked services.
-            --rm                  Remove container after run. Ignored in detached mode.
-            -p, --publish=[]      Publish a container's port(s) to the host
-            --service-ports       Run command with the service's ports enabled and mapped
-                                  to the host.
-            -T                    Disable pseudo-tty allocation. By default `docker-compose run`
-                                  allocates a TTY.
-        """
-        service = project.get_service(options['SERVICE'])
-        detach = options['-d']
+    #     Options:
+    #         -d                    Detached mode: Run container in the background, print
+    #                               new container name.
+    #         --name NAME           Assign a name to the container
+    #         --entrypoint CMD      Override the entrypoint of the image.
+    #         -e KEY=VAL            Set an environment variable (can be used multiple times)
+    #         -u, --user=""         Run as specified username or uid
+    #         --no-deps             Don't start linked services.
+    #         --rm                  Remove container after run. Ignored in detached mode.
+    #         -p, --publish=[]      Publish a container's port(s) to the host
+    #         --service-ports       Run command with the service's ports enabled and mapped
+    #                               to the host.
+    #         -T                    Disable pseudo-tty allocation. By default `docker-compose run`
+    #                               allocates a TTY.
+    #     """
+    #     service = project.get_service(options['SERVICE'])
+    #     detach = options['-d']
 
-        if IS_WINDOWS_PLATFORM and not detach:
-            raise UserError(
-                "Interactive mode is not yet supported on Windows.\n"
-                "Please pass the -d flag when using `docker-compose run`."
-            )
+    #     if IS_WINDOWS_PLATFORM and not detach:
+    #         raise UserError(
+    #             "Interactive mode is not yet supported on Windows.\n"
+    #             "Please pass the -d flag when using `docker-compose run`."
+    #         )
 
-        if options['COMMAND']:
-            command = [options['COMMAND']] + options['ARGS']
-        else:
-            command = service.options.get('command')
+    #     if options['COMMAND']:
+    #         command = [options['COMMAND']] + options['ARGS']
+    #     else:
+    #         command = service.options.get('command')
 
-        container_options = {
-            'command': command,
-            'tty': not (detach or options['-T'] or not sys.stdin.isatty()),
-            'stdin_open': not detach,
-            'detach': detach,
-        }
+    #     container_options = {
+    #         'command': command,
+    #         'tty': not (detach or options['-T'] or not sys.stdin.isatty()),
+    #         'stdin_open': not detach,
+    #         'detach': detach,
+    #     }
 
-        if options['-e']:
-            container_options['environment'] = parse_environment(options['-e'])
+    #     if options['-e']:
+    #         container_options['environment'] = parse_environment(options['-e'])
 
-        if options['--entrypoint']:
-            container_options['entrypoint'] = options.get('--entrypoint')
+    #     if options['--entrypoint']:
+    #         container_options['entrypoint'] = options.get('--entrypoint')
 
-        if options['--rm']:
-            container_options['restart'] = None
+    #     if options['--rm']:
+    #         container_options['restart'] = None
 
-        if options['--user']:
-            container_options['user'] = options.get('--user')
+    #     if options['--user']:
+    #         container_options['user'] = options.get('--user')
 
-        if not options['--service-ports']:
-            container_options['ports'] = []
+    #     if not options['--service-ports']:
+    #         container_options['ports'] = []
 
-        if options['--publish']:
-            container_options['ports'] = options.get('--publish')
+    #     if options['--publish']:
+    #         container_options['ports'] = options.get('--publish')
 
-        if options['--publish'] and options['--service-ports']:
-            raise UserError(
-                'Service port mapping and manual port mapping '
-                'can not be used togather'
-            )
+    #     if options['--publish'] and options['--service-ports']:
+    #         raise UserError(
+    #             'Service port mapping and manual port mapping '
+    #             'can not be used togather'
+    #         )
 
-        if options['--name']:
-            container_options['name'] = options['--name']
+    #     if options['--name']:
+    #         container_options['name'] = options['--name']
 
-        run_one_off_container(container_options, project, service, options)
+    #     run_one_off_container(container_options, project, service, options)
 
     # def scale(self, project, options):
     #     """
@@ -541,16 +539,16 @@ class TopLevelCommand(DocoptCommand):
     #                             'number' % service_name)
     #         project.get_service(service_name).scale(num, timeout=timeout)
 
-    def start(self, project, options):
-        """
-        Start existing containers.
+    # def start(self, project, options):
+    #     """
+    #     Start existing containers.
 
-        Usage: start [SERVICE...]
-        """
-        containers = project.start(service_names=options['SERVICE'])
-        exit_if(not containers, 'No containers to start', 1)
+    #     Usage: start [SERVICE...]
+    #     """
+    #     containers = project.start(service_names=options['SERVICE'])
+    #     exit_if(not containers, 'No containers to start', 1)
 
-    def stop(self, project, options):
+    # def stop(self, project, options):
         """
         Stop running containers without removing them.
 
