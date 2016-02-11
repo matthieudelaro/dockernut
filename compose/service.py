@@ -9,7 +9,6 @@ from operator import attrgetter
 
 from subprocess import call
 import shlex
-
 import enum
 import six
 from docker.errors import APIError
@@ -109,22 +108,31 @@ class ImageType(enum.Enum):
 class Env(object):
     def __init__(
         self,
+        workingDirectory,
         more,
         **options
     ):
+        self.workingDirectory = workingDirectory
         self.name = more["name"]
         self.more = more
         self.options = options
 
     def pull(self):
+        """Pull image from docker hub"""
         print("pulling")
 
-    def run(self, args):
+    def exe(self, args):
+        """Run the program"""
         if self.more["env"]["image"]:
             imageName = self.more["env"]["image"]
-            call(["docker", "run", "--rm", "-v", "/Users/matthieudelaro/Documents/projects/docker/investigations/compose/tests/nut:/theapp", "-w", "/theapp", imageName, *args])
+            call(["docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName, *args])
+
+    def run(self):
+        """Run the program"""
+        pass
 
     def build(self):
+        """Build the program"""
         try:
             command = self.more["commands"]["build"]
         except KeyError:
@@ -140,7 +148,7 @@ class Env(object):
             # TODO: keep container alive between the calls
             for c in commands:
                 theArgs = shlex.split(c)  # parse the string the same way the command line would
-                self.run(theArgs)
+                self.exe(theArgs)
 
 
 

@@ -30,6 +30,8 @@ from .service import ServiceNetworkMode
 from .utils import microseconds_from_time_nano
 from .volume import ProjectVolumes
 
+import os
+
 
 log = logging.getLogger(__name__)
 
@@ -88,6 +90,7 @@ class Project(object):
 
             project.services.append(
                 Env(
+                    workingDirectory=os.getcwdb().decode("utf-8"),
                     more=service_dict,
                     **service_dict)
             )
