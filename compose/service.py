@@ -9,6 +9,10 @@ from operator import attrgetter
 
 from subprocess import call
 import shlex
+# from cli.command import get_project
+# from .cli.command import *
+# from compose.cli import command
+
 import enum
 import six
 from docker.errors import APIError
@@ -116,24 +120,45 @@ class Env(object):
         self.name = more["name"]
         self.more = more
         self.options = options
+        self.loadConfig()
 
-    def build(self):
+    def setNutConfig(self, config):
+        self.nutConfig = config
+
+    # def loadImage(self):
+    #     """Gets the name of the image from the configuration.
+    #     Pulls it if necessary, builds it, ..."""
+    #     if self.more["env"]["image"]:
+    #         self.imageName = self.more["env"]["image"]
+    #     else:
+    #         self.imageName = "undefineddockerimagename"
+
+    def loadConfig(self):
+        # load a custom yml script
+        # donut = get_project(os.path.join(self.base_dir, ".nut", self.name), config_path=["nut.yml"], project_name=None, verbose=True)
+        # print()
+        # print("donut", donut)
+        # print("the config loaded from the file: ", self.getEnv(donut).more)  # here is the config
+        pass
+
+    def build(self, args):
         """Builds the program"""
-        try:
-            command = self.more["commands"]["build"]
-        except KeyError:
-            print("No build target")
-        else:
-            commands = None
-            if isinstance(command, str):
-                commands = [command]
-            elif isinstance(command, list):
-                commands = command
+        self.cmd("BUILD", args, verbose=False)
+        # try:
+        #     command = self.more["commands"]["build"]
+        # except KeyError:
+        #     print("No build target")
+        # else:
+        #     commands = None
+        #     if isinstance(command, str):
+        #         commands = [command]
+        #     elif isinstance(command, list):
+        #         commands = command
 
-            # TODO: keep container alive between the calls
-            for c in commands:
-                theArgs = shlex.split(c)  # parse the string the same way the command line would
-                self.exe(theArgs)
+        #     # TODO: keep container alive between the calls
+        #     for c in commands:
+        #         theArgs = shlex.split(c)  # parse the string the same way the command line would
+        #         self.exe(theArgs)
 
     def exe(self, args):
         """Runs the command"""
@@ -141,17 +166,43 @@ class Env(object):
             imageName = self.more["env"]["image"]
             call(["docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName, *args])
 
-    def run(self):
+    def run(self, args):
         """Runs the program"""
-        pass
+        self.cmd("RUN", args, verbose=False)
 
-    def cmd(self, name):
-        """Runs the command 'name' defined in project configuration file."""
+    def test(self, args):
+        """Tests the program"""
+        self.cmd("TEST", args, verbose=False)
+
+    def cmd(self, name, args, verbose=True):
+        """Runs the command 'name' defined in the project configuration file,
+        or in the nut configuration file."""
+        command = None
+        commandProject = None
+        commandNut = None
         try:
-            command = self.more["commands"][name]
+            commandProject = self.more["commands"][name]
         except KeyError:
-            print("The command '" + name + "' is not defined in the configuration. Check yml file.")
+            # print("The command '" + name + "' is not defined in the project configuration. Check project yml file.")
+            pass
+        try:
+            commandNut = self.nutConfig["commands"][name]
+        except KeyError:
+            # print("The command '" + name + "' is not defined in nut configuration. Check nut yml file.")
+            pass
+
+        if commandProject is not None:
+            command = commandProject
+            if verbose:
+                print("Using command '" + name + "' defined in project configuration.")
+        elif commandNut is not None:
+            command = commandNut
+            if verbose:
+                print("Using command '" + name + "' defined in nut configuration.")
         else:
+            print("The command '" + name + "' is not defined, neither in project configuration, nor in nut configuration. Check yml files.")
+
+        if command is not None:
             commands = None
             if isinstance(command, str):
                 commands = [command]
@@ -161,7 +212,9 @@ class Env(object):
             # TODO: keep container alive between the calls
             for c in commands:
                 theArgs = shlex.split(c)  # parse the string the same way the command line would
+                theArgs += args
                 self.exe(theArgs)
+
 
 
 class Service(object):

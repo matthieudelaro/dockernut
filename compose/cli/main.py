@@ -117,6 +117,22 @@ def parse_doc_section(name, source):
     return [s.strip() for s in pattern.findall(source)]
 
 
+def loadConfig(baseDirectory, project):
+    for envName in project.service_names:
+        env = project.get_service(envName)
+        envConfigDirectory = os.path.join(baseDirectory, ".nut", envName)
+
+        # load a custom yml script
+        donut = get_project(envConfigDirectory, config_path=["nut.yml"], project_name=None, verbose=False)
+        # print()
+        # print("donut", donut)
+        # print("the config loaded from the file: ", donut.get_service(donut.service_names[0]).more)  # here is the config
+
+        env.setNutConfig(donut.get_service(donut.service_names[0]).more)
+        # print("the config for the nut: ", env.nutConfig)  # here is the config
+    pass
+
+
 class TopLevelCommand(DocoptCommand):
     """Define and use a dev environment with Docker.
 
@@ -136,6 +152,7 @@ class TopLevelCommand(DocoptCommand):
       exe                Run a command given as argument
       help               Get help on a command
       run                Run the app
+      test               Run the tests
       version            Show the nut version information
     """
     base_dir = '.'
@@ -162,11 +179,12 @@ class TopLevelCommand(DocoptCommand):
 
         project = project_from_options(self.base_dir, options)
 
-        # load a custom yml script
-        donut = get_project(os.path.join(self.base_dir, ".nut", "go"), config_path=["nut.yml"], project_name=None, verbose=True)
-        print()
-        print("donut", donut)
-        print("the config loaded from the file: ", self.getEnv(donut).more)  # here is the config
+        loadConfig(self.base_dir, project)
+        # # load a custom yml script
+        # donut = get_project(os.path.join(self.base_dir, ".nut", "go"), config_path=["nut.yml"], project_name=None, verbose=True)
+        # print()
+        # print("donut", donut)
+        # print("the config loaded from the file: ", self.getEnv(donut).more)  # here is the config
 
         with friendly_error_message():
             handler(project, command_options)
@@ -175,20 +193,20 @@ class TopLevelCommand(DocoptCommand):
         """
         Build or rebuild services.
 
-        Usage: build
+        Usage: build [ARGS...]
         """
         # project.build(
         #     service_names=options['SERVICE'],
         #     no_cache=bool(options.get('--no-cache', False)),
         #     pull=bool(options.get('--pull', False)),
         #     force_rm=bool(options.get('--force-rm', False)))
-        self.getEnv(project).build()
+        self.getEnv(project).build(options["ARGS"])
 
     def cmd(self, project, options):
         """
         Run command defined in the project configuration.
 
-        Usage: cmd [ARGS]
+        Usage: cmd COMMAND [ARGS...]
         """
         #  cmd [command] [ARGS...]
         # print("hello")
@@ -196,7 +214,7 @@ class TopLevelCommand(DocoptCommand):
         # print("environment:", project.get_service(project.service_names[0]).name)
         # print(options)
         # project.get_service(project.service_names[0]).run(options["ARGS"])
-        self.getEnv(project).cmd(options["ARGS"])
+        self.getEnv(project).cmd(options["COMMAND"], options["ARGS"])
         # project.get_service(project.service_names[0]).run(["echo", "hello"])
         # project.get_service(project.service_names[0]).pull()
         # print(project.get_service(project.service_names[0]).image)
@@ -208,6 +226,22 @@ class TopLevelCommand(DocoptCommand):
         Usage: exe [ARGS...]
         """
         self.getEnv(project).exe(options["ARGS"])
+
+    def run(self, project, options):
+        """
+        Runs the service.
+
+        Usage: run [ARGS...]
+        """
+        self.getEnv(project).run(options["ARGS"])
+
+    def test(self, project, options):
+        """
+        Runs the tests.
+
+        Usage: test [ARGS...]
+        """
+        self.getEnv(project).test(options["ARGS"])
 
     # def config(self, config_options, options):
     #     """

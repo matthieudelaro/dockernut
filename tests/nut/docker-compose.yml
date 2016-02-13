@@ -5,7 +5,3 @@ go:
   commands:
     helloworld:
       - echo "Hello World!"
-    build:
-      - go build -v
-    run :
-      - go
