@@ -52,3 +52,8 @@ Releasing
 ---------
 
 This project is in a very early stage and is to evolve quickly.
+To test Donut, set up a development environment by running `python3 setup.py develop`.
+This will install the dependencies and set up a symlink from your `nut`
+executable to the checkout of the repository. When you now run
+`nut` from anywhere on your machine, it will run your development
+version of Donut.
