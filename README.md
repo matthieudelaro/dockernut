@@ -4,6 +4,8 @@ Donut, Docker Nut
 Docker Nut sets up dev environments based on Docker containers.
 It aims to manage environments as easily as one installs packages with npm/bower/etc,
 without messing up your computer's configuration. Everything happens in containers.
+As npm, Donut stores some configuration files in .nut directory, such as the environment
+configuration files.
 
 To begin with, create a file nut.yml (example below) in your working directory, and run :
 
@@ -17,6 +19,8 @@ A `nut.yml` describing a project looks like this:
     go:  # name of the environment
       env:
         path: exampleOfLocalNutFile/go/nut.yml  # path to a nut.yml file describing an environment
+        # You can also install the environment with a url:
+        # url: https://raw.githubusercontent.com/matthieudelaro/donut/master/go/nut.yml
       commands:  # defined custom commands / macros to run in the container with "nut cmd NAME"
         helloworld:  # custom command called "helloworld"
           - echo "Hello World! ..."
@@ -41,7 +45,7 @@ On the other hand, the `nut.yml` describing an environment looks like this:
         # By convention, uppercase means that it is a command predefined by nut ("nut run", "nut build", etc)
 
 
-For more information about the Compose file, see the
+For more information about the Nut file, see the
 [example](tests/nut/)
 
 Releasing
