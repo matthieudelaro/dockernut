@@ -1,5 +1,5 @@
 
-go:
+go1.6:
   env:
     image: golang:1.3
   commands:

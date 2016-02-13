@@ -162,8 +162,8 @@ class Env(object):
 
     def exe(self, args):
         """Runs the command"""
-        if self.more["env"]["image"]:
-            imageName = self.more["env"]["image"]
+        if self.nutConfig["env"]["image"]:
+            imageName = self.nutConfig["env"]["image"]
             call(["docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName, *args])
 
     def run(self, args):
