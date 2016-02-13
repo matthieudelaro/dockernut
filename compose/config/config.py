@@ -98,6 +98,7 @@ DOCKER_VALID_URL_PREFIXES = (
 )
 
 SUPPORTED_FILENAMES = [
+    'nut.yml',
     'docker-compose.yml',
     'docker-compose.yaml',
 ]
