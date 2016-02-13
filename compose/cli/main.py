@@ -42,6 +42,8 @@ from .utils import get_version_info
 from .utils import yesno
 
 import os
+from .nut import Nut
+import urllib.request
 
 
 if not IS_WINDOWS_PLATFORM:
@@ -122,12 +124,22 @@ def loadConfig(baseDirectory, project):
         env = project.get_service(envName)
 
         path = env.getProjectConfig("env", "path")
+        url = env.getProjectConfig("env", "url")
+        git = env.getProjectConfig("env", "git")
         if path is not None:
-            envConfigDirectory = os.path.dirname(os.path.join(baseDirectory, path))
-            envConfigFileName = os.path.basename(os.path.join(baseDirectory, path))
+            envConfigFullName = os.path.join(baseDirectory, path)
+            envConfigDirectory = os.path.dirname(envConfigFullName)
+            envConfigFileName = os.path.basename(envConfigFullName)
+        elif url is not None:
+            envConfigDirectory = os.path.join(baseDirectory, Nut.folder, envName)
+            envConfigFullName = os.path.join(envConfigDirectory, Nut.defaultConfigFile)
+            if not os.path.exists(envConfigDirectory):
+                os.makedirs(envConfigDirectory)
+                urllib.request.urlretrieve(url, envConfigFullName)
+                log.info("Fetched file from url '%s' and created module '%s' from it.", url, envName)
+            pass
         else:
-            envConfigDirectory = os.path.join(baseDirectory, ".nut", envName)
-            envConfigFileName = None
+            envConfigDirectory = os.path.join(baseDirectory, Nut.folder, envName)
 
         # load a custom yml script
         donut = get_project(envConfigDirectory, config_path=None, project_name=None, verbose=False)
@@ -144,12 +156,16 @@ def loadConfig(baseDirectory, project):
 class TopLevelCommand(DocoptCommand):
     """Define and use a dev environment with Docker.
 
+    Try "nut init" to create a boilerplate nut.yml file in the current directory.
+    Modify it to fit your need. Then run "nut build" and "nut run" to build and
+    run your app in a container.
+
     Usage:
-      docker-compose [-f=<arg>...] [options] [COMMAND] [ARGS...]
-      docker-compose -h|--help
+      nut [-f=<arg>...] [options] [COMMAND] [ARGS...]
+      nut -h|--help
 
     Options:
-      -f, --file FILE           Specify an alternate compose file (default: docker-compose.yml)
+      -f, --file FILE           Specify an alternate compose file (default: nut.yml)
       -p, --project-name NAME   Specify an alternate project name (default: directory name)
       --verbose                 Show more output
       -v, --version             Print version and exit
@@ -159,6 +175,7 @@ class TopLevelCommand(DocoptCommand):
       cmd                Run a command defined in configuration file
       exe                Run a command given as argument
       help               Get help on a command
+      init               (yet to be implemented) Creates a boiler plate nut.yml file
       run                Run the app
       test               Run the tests
       version            Show the nut version information
@@ -199,7 +216,7 @@ class TopLevelCommand(DocoptCommand):
 
     def build(self, project, options):
         """
-        Build or rebuild services.
+        Build or rebuild app.
 
         Usage: build [ARGS...]
         """
@@ -234,6 +251,27 @@ class TopLevelCommand(DocoptCommand):
         Usage: exe [ARGS...]
         """
         self.getEnv(project).exe(options["ARGS"])
+
+    def init(self, project, options):
+        """
+        Creates a boiler plate nut.yml file.
+
+        Usage: init
+        """
+        # todo: solve error "ERROR: Top level object in './nut.yml' needs to be an object not '<class 'NoneType'>'."
+        # explanation: nut first looks for a nut.yml file, which of course does not exist yet.
+        boilerplate = """go:
+                          env:
+                            path: exampleOfLocalNutFile/go/nut.yml
+                          commands:
+                            helloworld:
+                              - echo "Hello World!"""
+        filename = os.path.join(self.base_dir, Nut.defaultConfigFile)
+        f = open(filename, 'w')
+        f.write(boilerplate)
+        log.info("The boilerplate nut.yml file has been created:")
+        call(["cat", filename])  # todo: not cross plateform
+
 
     def run(self, project, options):
         """

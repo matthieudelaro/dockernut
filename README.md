@@ -1,64 +1,50 @@
-Docker Compose
+Donut, Docker Nut
 ==============
-![Docker Compose](logo.png?raw=true "Docker Compose Logo")
 
-Compose is a tool for defining and running multi-container Docker applications.
-With Compose, you use a Compose file to configure your application's services.
-Then, using a single command, you create and start all the services
-from your configuration. To learn more about all the features of Compose
-see [the list of features](docs/index.md#features).
+Docker Nut sets up dev environments based on Docker containers.
+It aims to manage environments as easily as one installs packages with npm/bower/etc,
+without messing up your computer's configuration. Everything happens in containers.
 
-Compose is great for development, testing, and staging environments, as well as
-CI workflows. You can learn more about each case in
-[Common Use Cases](docs/overview.md#common-use-cases).
+To begin with, create a file nut.yml (example below) in your working directory, and run :
 
-Using Compose is basically a three-step process.
+nut build  # to build the app
+nut run  # to run the app
+nut cmd helloworld  # you can define custom commands in nut.yml file
+nut exe ls -la  # you can run whatever command in the environment
 
-1. Define your app's environment with a `Dockerfile` so it can be
-reproduced anywhere.
-2. Define the services that make up your app in `docker-compose.yml` so
-they can be run together in an isolated environment:
-3. Lastly, run `docker-compose up` and Compose will start and run your entire app.
+A `nut.yml` describing a project looks like this:
 
-A `docker-compose.yml` looks like this:
+    go:  # name of the environment
+      env:
+        path: exampleOfLocalNutFile/go/nut.yml  # path to a nut.yml file describing an environment
+      commands:  # defined custom commands / macros to run in the container with "nut cmd NAME"
+        helloworld:  # custom command called "helloworld"
+          - echo "Hello World! ..."
+          - echo "... Welcome to Docker Nut, Donut."
+        # By convention, custom commands should be in lowercase.
+        # you can also override RUN, BUILD, etc, which are called by "nut run", "nut build", etc.
 
-    web:
-      build: .
-      ports:
-       - "5000:5000"
-      volumes:
-       - .:/code
-      links:
-       - redis
-    redis:
-      image: redis
+
+On the other hand, the `nut.yml` describing an environment looks like this:
+
+    nut:  # this doesn't really matter yet. Just stick to this to have the same pattern for every environment
+      env:
+        image: golang:latest  # which image from Docker Hub to use
+        # or dockerfile: future feature to build directly from a docker file
+      commands:  # declare commands of the environments.
+        BUILD:
+          - go build -o output
+        RUN:
+          - ./output
+        TEST:
+          - echo "Nothing to test yet"
+        # By convention, uppercase means that it is a command predefined by nut ("nut run", "nut build", etc)
+
 
 For more information about the Compose file, see the
-[Compose file reference](docs/compose-file.md)
-
-Compose has commands for managing the whole lifecycle of your application:
-
- * Start, stop and rebuild services
- * View the status of running services
- * Stream the log output of running services
- * Run a one-off command on a service
-
-Installation and documentation
-------------------------------
-
-- Full documentation is available on [Docker's website](https://docs.docker.com/compose/).
-- If you have any questions, you can talk in real-time with other developers in the #docker-compose IRC channel on Freenode. [Click here to join using IRCCloud.](https://www.irccloud.com/invite?hostname=irc.freenode.net&channel=%23docker-compose)
-- Code repository for Compose is on [Github](https://github.com/docker/compose)
-- If you find any problems please fill out an [issue](https://github.com/docker/compose/issues/new)
-
-Contributing
-------------
-
-[![Build Status](http://jenkins.dockerproject.org/buildStatus/icon?job=Compose%20Master)](http://jenkins.dockerproject.org/job/Compose%20Master/)
-
-Want to help build Compose? Check out our [contributing documentation](https://github.com/docker/compose/blob/master/CONTRIBUTING.md).
+[example](tests/nut/)
 
 Releasing
 ---------
 
-Releases are built by maintainers, following an outline of the [release process](https://github.com/docker/compose/blob/master/project/RELEASE-PROCESS.md).
+This project is in a very early stage and is to evolve quickly.

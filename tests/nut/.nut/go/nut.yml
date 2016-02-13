@@ -1,0 +1,11 @@
+
+nut:
+  env:
+    image: golang:latest
+  commands:
+    BUILD:
+      - go build -o output
+    RUN:
+      - ./output
+    TEST:
+      - echo "Nothing to test yet"

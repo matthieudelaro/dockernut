@@ -1,7 +1,8 @@
 
 go:
   env:
-    path: exampleOfLocalNutFile/go/nut.yml
+    # path: exampleOfLocalNutFile/go/nut.yml
+    url: https://raw.githubusercontent.com/matthieudelaro/donut/master/go/nut.yml
   commands:
     helloworld:
       - echo "Hello World!"
