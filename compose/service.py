@@ -109,27 +109,62 @@ class ImageType(enum.Enum):
     all = 2
 
 
+class SafeDict(dict):
+    # inspired by http://stackoverflow.com/a/3405143/190597
+    def __missing__(self, key):
+        value = self[key] = type(self)()
+        return value
+
+    def __getitem__(self, key):
+        values = dict.__getitem__(self, key)
+        if isinstance(values, dict):
+            values = SafeDict(values)
+        if isinstance(values, list):
+            for i, v in enumerate(values):
+                if isinstance(v, dict):
+                    values[i] = SafeDict(v)
+        return values
+
+
+def safeget(dct, *keys):
+    for key in keys:
+        try:
+            dct = dct[key]
+        except KeyError:
+            return None
+    return dct
+
+
 class Env(object):
     def __init__(
         self,
         workingDirectory,
-        more,
+        projectConfig,
         **options
     ):
         self.workingDirectory = workingDirectory
-        self.name = more["name"]
-        self.more = more
+        # self.projectConfig = SafeDict(projectConfig)
+        self.projectConfig = projectConfig
+        self.nutConfig = {}
+        self.name = self.projectConfig["name"]
         self.options = options
         self.loadConfig()
 
     def setNutConfig(self, config):
         self.nutConfig = config
+        # self.nutConfig = SafeDict(config)
+
+    def getProjectConfig(self, *keys):
+        return safeget(self.projectConfig, *keys)
+
+    def getNutConfig(self, *keys):
+        return safeget(self.nutConfig, *keys)
 
     # def loadImage(self):
     #     """Gets the name of the image from the configuration.
     #     Pulls it if necessary, builds it, ..."""
-    #     if self.more["env"]["image"]:
-    #         self.imageName = self.more["env"]["image"]
+    #     if self.projectConfig["env"]["image"]:
+    #         self.imageName = self.projectConfig["env"]["image"]
     #     else:
     #         self.imageName = "undefineddockerimagename"
 
@@ -138,14 +173,14 @@ class Env(object):
         # donut = get_project(os.path.join(self.base_dir, ".nut", self.name), config_path=["nut.yml"], project_name=None, verbose=True)
         # print()
         # print("donut", donut)
-        # print("the config loaded from the file: ", self.getEnv(donut).more)  # here is the config
+        # print("the config loaded from the file: ", self.getEnv(donut).projectConfig)  # here is the config
         pass
 
     def build(self, args):
         """Builds the program"""
         self.cmd("BUILD", args, verbose=False)
         # try:
-        #     command = self.more["commands"]["build"]
+        #     command = self.projectConfig["commands"]["build"]
         # except KeyError:
         #     print("No build target")
         # else:
@@ -162,9 +197,11 @@ class Env(object):
 
     def exe(self, args):
         """Runs the command"""
-        if self.nutConfig["env"]["image"]:
-            imageName = self.nutConfig["env"]["image"]
+        imageName = self.getNutConfig("env", "image")
+        if imageName is not None:
             call(["docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName, *args])
+        else:
+            log.error("Docker image is undefined")
 
     def run(self, args):
         """Runs the program"""
@@ -181,7 +218,7 @@ class Env(object):
         commandProject = None
         commandNut = None
         try:
-            commandProject = self.more["commands"][name]
+            commandProject = self.projectConfig["commands"][name]
         except KeyError:
             # print("The command '" + name + "' is not defined in the project configuration. Check project yml file.")
             pass

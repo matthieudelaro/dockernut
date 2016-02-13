@@ -91,7 +91,7 @@ class Project(object):
             project.services.append(
                 Env(
                     workingDirectory=os.getcwdb().decode("utf-8"),
-                    more=service_dict,
+                    projectConfig=service_dict,
                     **service_dict)
             )
             # project.services.append(

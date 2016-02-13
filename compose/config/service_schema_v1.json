@@ -18,7 +18,8 @@
         "env": {
           "type": "object",
           "properties": {
-            "image": {"type": "string"}
+            "image": {"type": "string"},
+            "path": {"type": "string"}
           },
           "additionalProperties": false
         },

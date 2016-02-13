@@ -1,7 +1,7 @@
 
-go1.6:
+go:
   env:
-    image: golang:1.3
+    path: exampleOfLocalNutFile/go/nut.yml
   commands:
     helloworld:
       - echo "Hello World!"

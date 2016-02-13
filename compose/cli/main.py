@@ -120,15 +120,23 @@ def parse_doc_section(name, source):
 def loadConfig(baseDirectory, project):
     for envName in project.service_names:
         env = project.get_service(envName)
-        envConfigDirectory = os.path.join(baseDirectory, ".nut", envName)
+
+        path = env.getProjectConfig("env", "path")
+        if path is not None:
+            envConfigDirectory = os.path.dirname(os.path.join(baseDirectory, path))
+            envConfigFileName = os.path.basename(os.path.join(baseDirectory, path))
+        else:
+            envConfigDirectory = os.path.join(baseDirectory, ".nut", envName)
+            envConfigFileName = None
 
         # load a custom yml script
-        donut = get_project(envConfigDirectory, config_path=["nut.yml"], project_name=None, verbose=False)
+        donut = get_project(envConfigDirectory, config_path=None, project_name=None, verbose=False)
+        # donut = get_project(envConfigDirectory, config_path=["nut.yml"], project_name=None, verbose=False)
         # print()
         # print("donut", donut)
-        # print("the config loaded from the file: ", donut.get_service(donut.service_names[0]).more)  # here is the config
+        # print("the config loaded from the file: ", donut.get_service(donut.service_names[0]).projectConfig)  # here is the config
 
-        env.setNutConfig(donut.get_service(donut.service_names[0]).more)
+        env.setNutConfig(donut.get_service(donut.service_names[0]).projectConfig)
         # print("the config for the nut: ", env.nutConfig)  # here is the config
     pass
 
@@ -184,7 +192,7 @@ class TopLevelCommand(DocoptCommand):
         # donut = get_project(os.path.join(self.base_dir, ".nut", "go"), config_path=["nut.yml"], project_name=None, verbose=True)
         # print()
         # print("donut", donut)
-        # print("the config loaded from the file: ", self.getEnv(donut).more)  # here is the config
+        # print("the config loaded from the file: ", self.getEnv(donut).projectConfig)  # here is the config
 
         with friendly_error_message():
             handler(project, command_options)
