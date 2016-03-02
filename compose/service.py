@@ -199,7 +199,7 @@ class Env(object):
         """Runs the command"""
         imageName = self.getNutConfig("env", "image")
         if imageName is not None:
-            call(["docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName, *args])
+            call(("docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName) + tuple(args) )
         else:
             log.error("Docker image is undefined")
 
