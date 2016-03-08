@@ -145,7 +145,7 @@ def loadConfig(baseDirectory, project):
         donut = get_project(envConfigDirectory, config_path=None, project_name=None, verbose=False)
         # donut = get_project(envConfigDirectory, config_path=["nut.yml"], project_name=None, verbose=False)
         # print()
-        # print("donut", donut)
+        # print("donut", donut, "from path", envConfigDirectory)
         # print("the config loaded from the file: ", donut.get_service(donut.service_names[0]).projectConfig)  # here is the config
 
         env.setNutConfig(donut.get_service(donut.service_names[0]).projectConfig)

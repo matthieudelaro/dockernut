@@ -199,7 +199,19 @@ class Env(object):
         """Runs the command"""
         imageName = self.getNutConfig("env", "image")
         if imageName is not None:
-            call(("docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName) + tuple(args) )
+            gpuSupportNut = self.getNutConfig("gpu")
+            gpuSupportProject = self.getProjectConfig("gpu")
+            if gpuSupportProject == True or (gpuSupportProject == None and gpuSupportNut == True):
+                caller = ("nvidia-docker", "run", "--rm",  "--device=/dev/nvidia0:/dev/nvidia0", "--device=/dev/nvidiactl:/dev/nvidiactl", "--volume="+self.workingDirectory+":/theapp", "--workdir=/theapp", imageName) + tuple(args)
+                # caller = ("nvidia-docker", "run", "--rm", "--volume="+self.workingDirectory+":/theapp", "--workdir=/theapp", "/bin/sh", "-c", imageName) + tuple(args)
+            else:
+                caller = ("docker", "run", "--rm", "--volume="+self.workingDirectory+":/theapp", "--workdir=/theapp", imageName) + tuple(args)
+                # caller = ("docker", "run", "--rm", "--volume="+self.workingDirectory+":/theapp", "--workdir=/theapp", "/bin/sh", "-c", imageName) + tuple(args)
+            print("Command:", ' '.join(str(i) for i in caller))
+            print()
+            call(caller)
+            # call(("docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName) + tuple(args) )
+            # call(("docker", "run", "--rm", "-v", self.workingDirectory+":/theapp", "-w", "/theapp", imageName) + tuple(args) )
         else:
             log.error("Docker image is undefined")
 

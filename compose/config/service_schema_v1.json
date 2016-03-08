@@ -24,6 +24,9 @@
           },
           "additionalProperties": false
         },
+        "gpu": {
+          "type": "boolean"
+        },
         "commands": {
           "type": "object",
           "additionalProperties": true
