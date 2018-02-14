@@ -1,5 +1,9 @@
+This repo is the PoC version of [Nut](https://github.com/matthieudelaro/nut). This repo is completely outdated and should not be used. But if you're looking for some funny attempt of turning Docker Compose into something new, then have fun reading through :)
+
+
 Donut, Docker Nut
 ==============
+
 
 Docker Nut sets up dev environments based on Docker containers.
 It aims to manage environments as easily as one installs packages with npm/bower/etc,
